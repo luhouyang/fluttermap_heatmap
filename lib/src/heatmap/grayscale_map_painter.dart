@@ -66,6 +66,6 @@ class DataPoint {
   void merge(double x, double y, double intensity) {
     this.x = (x * intensity + this.x * z) / (intensity + z);
     this.y = (y * intensity + this.y * z) / (intensity + z);
-    z = (z + intensity)/2;
+    z = z + intensity;
   }
 }
