@@ -6,9 +6,12 @@ import 'package:flutter_map_heatmap/flutter_map_heatmap.dart';
 import 'transparent.dart';
 
 class HeatMap {
-  HeatMap(this.options, this.width, this.height, this.data) {
+  HeatMap(this.options, this.width, this.height, this.data, this.minim, this.maxim) {
     _initColorPalette();
   }
+  // added
+  final double minim;
+  final double maxim;
 
   final HeatMapOptions options;
   final double width;
@@ -74,7 +77,7 @@ class HeatMap {
     final canvas = Canvas(recorder);
 
     final painter = GrayScaleHeatMapPainter(
-        baseCircle: baseCircle, data: data, minOpacity: options.minOpacity);
+        baseCircle: baseCircle, data: data, minOpacity: options.minOpacity, min: minim, max: maxim);  // added
     painter.paint(
         canvas, Size(width + options.radius, height + options.radius));
 
