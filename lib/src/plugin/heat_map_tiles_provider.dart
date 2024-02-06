@@ -10,13 +10,19 @@ import 'dart:ui' as ui;
 import 'package:latlong2/latlong.dart';
 
 class HeatMapTilesProvider extends TileProvider {
+  // added
+  double minim = 100000;
+  double maxim = 0;
+
   HeatMapDataSource dataSource;
   HeatMapOptions heatMapOptions;
 
   late Map<double, List<DataPoint>> griddedData;
 
   HeatMapTilesProvider(
-      {required this.dataSource, required this.heatMapOptions});
+      {
+      required this.dataSource,
+      required this.heatMapOptions});
 
   @override
   ImageProvider getImage(TileCoordinates coordinates, TileLayer options) {
@@ -25,14 +31,20 @@ class HeatMapTilesProvider extends TileProvider {
     // disable zoom level 0 for now. ned to refactor _filterData
     List<DataPoint> filteredData =
         coordinates.z != 0 ? _filterData(coordinates, options) : [];
-    var scale = coordinates.z / 22 * 1.22;
+
+    // added
+    var scale = coordinates.z /
+        (math.pow(22, 22 / coordinates.z)) *
+        sqrt(coordinates.z - 13);
+
     final radius = heatMapOptions.radius * scale;
     var imageHMOptions = HeatMapOptions(
       radius: radius,
       minOpacity: heatMapOptions.minOpacity,
       gradient: heatMapOptions.gradient,
     );
-    return HeatMapImage(filteredData, imageHMOptions, tileSize);
+
+    return HeatMapImage(filteredData, imageHMOptions, tileSize, minim, maxim);
   }
 
   /// hyperbolic sine implementation
@@ -93,6 +105,14 @@ class HeatMapTilesProvider extends TileProvider {
         if (bounds.contains(point.latLng)) {
           filteredData.add(DataPoint(pixel.x, pixel.y, k));
         }
+
+        // added
+        if (k < minim) {
+          minim = k;
+        }
+        if (k > maxim) {
+          maxim = k;
+        }
       }
     }
 
@@ -137,8 +157,10 @@ class HeatMapImage extends ImageProvider<HeatMapImage> {
   final List<DataPoint> data;
   final HeatMap generator;
 
-  HeatMapImage(this.data, HeatMapOptions heatmapOptions, double size)
-      : generator = HeatMap(heatmapOptions, size, size, data);
+  // added
+  HeatMapImage(this.data, HeatMapOptions heatmapOptions, double size,
+      double minim, double maxim)
+      : generator = HeatMap(heatmapOptions, size, size, data, minim, maxim);
 
   @override
   ImageStreamCompleter loadImage(HeatMapImage key, decode) {
